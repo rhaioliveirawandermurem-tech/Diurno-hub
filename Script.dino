@@ -1,577 +1,791 @@
 --[[
-    ╔══════════════════════════════════════╗
-    ║         DIURNO HUB - v1.0            ║
-    ║   Verde Neon • Vermelho • Dark Green ║
-    ╚══════════════════════════════════════╝
+🦖 DINO HUB 🦖
+Key: dino
 ]]
 
--- ============ KEY SYSTEM ============
-local KEY_CORRETA = "diurno-2013"
+-- ==================== CONFIGURAÇÕES ====================
+local COR_NEON = Color3.fromRGB(0, 255, 120)
+local COR_FUNDO = Color3.fromRGB(15, 15, 15)
+local COR_FUNDO_2 = Color3.fromRGB(25, 30, 25)
+local COR_NEON_ESCURO = Color3.fromRGB(0, 180, 85)
+local COR_TXT_DIM = Color3.fromRGB(140, 160, 145)
 
-local player = game:GetService("Players").LocalPlayer
+-- ==================== KEY ====================
+local KEY_CORRETA = "dino"
+
+-- ==================== SERVIÇOS ====================
+local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
+local LP = Players.LocalPlayer
 
--- ============ SERVIÇOS DE INPUT ============
-local function makeDraggable(frame, dragArea)
-    dragArea = dragArea or frame
-    local dragging, dragInput, dragStart, startPos
-    
-    dragArea.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-    
-    dragArea.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-    
-    UIS.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
+-- Limpeza
+for _, n in ipairs({"DinoKey", "DinoHub", "DinoFlyControls", "DinoESP"}) do
+pcall(function()
+local g = CoreGui:FindFirstChild(n)
+if g then g:Destroy() end
+end)
 end
 
--- ============ KEY GUI ============
-local keyGui = Instance.new("ScreenGui")
-keyGui.Name = "DiurnoKeyGui"
-keyGui.ResetOnSpawn = false
-keyGui.Parent = CoreGui
+local loadMainHub
 
-local keyFrame = Instance.new("Frame")
-keyFrame.Size = UDim2.new(0, 350, 0, 180)
-keyFrame.Position = UDim2.new(0.5, -175, 0.5, -90)
-keyFrame.BackgroundColor3 = Color3.fromRGB(15, 40, 20)
-keyFrame.BorderSizePixel = 0
-keyFrame.Parent = keyGui
+-- ==================== KEY SYSTEM ====================
+local function createKeyGui()
+local gui = Instance.new("ScreenGui")
+gui.Name = "DinoKey"
+gui.ResetOnSpawn = false
+gui.Parent = CoreGui
 
-local keyCorner = Instance.new("UICorner")
-keyCorner.CornerRadius = UDim.new(0, 15)
-keyCorner.Parent = keyFrame
+local frame = Instance.new("Frame")  
+frame.Size = UDim2.new(0, 320, 0, 230)  
+frame.Position = UDim2.new(0.5, -160, 0.5, -115)  
+frame.BackgroundColor3 = COR_FUNDO  
+frame.BorderSizePixel = 0  
+frame.Active = true  
+frame.Draggable = true  
+frame.Parent = gui  
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 16)  
 
-local keyStroke = Instance.new("UIStroke")
-keyStroke.Color = Color3.fromRGB(255, 0, 0)
-keyStroke.Thickness = 3
-keyStroke.Parent = keyFrame
+local stroke = Instance.new("UIStroke")  
+stroke.Color = COR_NEON  
+stroke.Thickness = 1.5  
+stroke.Parent = frame  
 
-local keyTitle = Instance.new("TextLabel")
-keyTitle.Size = UDim2.new(1, 0, 0, 40)
-keyTitle.BackgroundTransparency = 1
-keyTitle.Text = "🔒 DIURNO HUB - KEY"
-keyTitle.TextColor3 = Color3.fromRGB(0, 255, 100)
-keyTitle.Font = Enum.Font.GothamBold
-keyTitle.TextSize = 20
-keyTitle.Parent = keyFrame
+local title = Instance.new("TextLabel")  
+title.Size = UDim2.new(1, 0, 0, 45)  
+title.Position = UDim2.new(0, 0, 0, 14)  
+title.BackgroundTransparency = 1  
+title.Text = "🦖 DINO HUB | KEY"  
+title.TextColor3 = COR_NEON  
+title.Font = Enum.Font.GothamBold  
+title.TextSize = 22  
+title.Parent = frame  
 
-local keyBox = Instance.new("TextBox")
-keyBox.Size = UDim2.new(1, -40, 0, 40)
-keyBox.Position = UDim2.new(0, 20, 0, 55)
-keyBox.BackgroundColor3 = Color3.fromRGB(25, 60, 30)
-keyBox.TextColor3 = Color3.fromRGB(0, 255, 100)
-keyBox.PlaceholderText = "Digite a key..."
-keyBox.PlaceholderColor3 = Color3.fromRGB(100, 200, 120)
-keyBox.Font = Enum.Font.Gotham
-keyBox.TextSize = 16
-keyBox.Text = ""
-keyBox.BorderSizePixel = 0
-keyBox.Parent = keyFrame
+local sub = Instance.new("TextLabel")  
+sub.Size = UDim2.new(1, 0, 0, 18)  
+sub.Position = UDim2.new(0, 0, 0, 60)  
+sub.BackgroundTransparency = 1  
+sub.Text = "Digite a Key de Acesso"  
+sub.TextColor3 = COR_TXT_DIM  
+sub.Font = Enum.Font.Gotham  
+sub.TextSize = 12  
+sub.Parent = frame  
 
-local keyBoxCorner = Instance.new("UICorner")
-keyBoxCorner.CornerRadius = UDim.new(0, 8)
-keyBoxCorner.Parent = keyBox
+local box = Instance.new("TextBox")  
+box.Size = UDim2.new(0, 250, 0, 40)  
+box.Position = UDim2.new(0.5, -125, 0, 92)  
+box.BackgroundColor3 = COR_FUNDO_2  
+box.BorderSizePixel = 0  
+box.Text = ""  
+box.PlaceholderText = "Digite sua key..."  
+box.TextColor3 = Color3.fromRGB(220, 255, 230)  
+box.PlaceholderColor3 = COR_TXT_DIM  
+box.Font = Enum.Font.Gotham  
+box.TextSize = 14  
+box.ClearTextOnFocus = false  
+box.Parent = frame  
+Instance.new("UICorner", box).CornerRadius = UDim.new(0, 10)  
+local boxStroke = Instance.new("UIStroke")  
+boxStroke.Color = COR_NEON  
+boxStroke.Thickness = 1  
+boxStroke.Transparency = 0.4  
+boxStroke.Parent = box  
 
-local keyBtn = Instance.new("TextButton")
-keyBtn.Size = UDim2.new(1, -40, 0, 40)
-keyBtn.Position = UDim2.new(0, 20, 0, 110)
-keyBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
-keyBtn.Text = "VERIFICAR"
-keyBtn.TextColor3 = Color3.fromRGB(15, 40, 20)
-keyBtn.Font = Enum.Font.GothamBold
-keyBtn.TextSize = 16
-keyBtn.BorderSizePixel = 0
-keyBtn.Parent = keyFrame
+local btn = Instance.new("TextButton")  
+btn.Size = UDim2.new(0, 250, 0, 40)  
+btn.Position = UDim2.new(0.5, -125, 0, 142)  
+btn.BackgroundColor3 = COR_NEON  
+btn.BorderSizePixel = 0  
+btn.Text = "VERIFICAR"  
+btn.TextColor3 = COR_FUNDO  
+btn.Font = Enum.Font.GothamBold  
+btn.TextSize = 15  
+btn.AutoButtonColor = false  
+btn.Parent = frame  
+Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)  
 
-local keyBtnCorner = Instance.new("UICorner")
-keyBtnCorner.CornerRadius = UDim.new(0, 8)
-keyBtnCorner.Parent = keyBtn
+local status = Instance.new("TextLabel")  
+status.Size = UDim2.new(1, 0, 0, 18)  
+status.Position = UDim2.new(0, 0, 0, 192)  
+status.BackgroundTransparency = 1  
+status.Text = ""  
+status.TextColor3 = Color3.fromRGB(255, 80, 100)  
+status.Font = Enum.Font.Gotham  
+status.TextSize = 12  
+status.Parent = frame  
 
-makeDraggable(keyFrame, keyTitle)
+local function tryVerify()  
+    local k = box.Text  
+    if k == "" then  
+        status.Text = "Digite uma key!"  
+        return  
+    end  
+    if k ~= KEY_CORRETA then  
+        status.Text = "❌ Key inválida"  
+        box.Text = ""  
+        return  
+    end  
+    status.Text = "✅ Acesso Concedido"  
+    status.TextColor3 = COR_NEON  
+    btn.Text = "OK!"  
+    btn.BackgroundColor3 = COR_NEON_ESCURO  
+    task.wait(0.9)  
+    gui:Destroy()  
+    _G.DinoAuthenticated = true  
+    loadMainHub()  
+end  
 
--- ============ VARIAVEIS GLOBAIS DOS MÓDULOS ============
-local Config = {
-    GojoActive = false,
-    FlyActive = false,
-    BypassActive = false,
-    FocusActive = false,
-    FocusTarget = nil,
-}
-
-local FlyKeys = {W=false, A=false, S=false, D=false, Up=false, Down=false}
-local FlySpeed = 80
-
-local FocusConn = nil
-local FocusPart = nil
-local GojoConn = nil
-local BypassConn = nil
-
--- ============ KEY VERIFY ============
-keyBtn.MouseButton1Click:Connect(function()
-    if keyBox.Text == KEY_CORRETA then
-        keyFrame:Destroy()
-        -- Abre o hub após verificação
-        _G.OpenDiurnoHub()
-    else
-        keyBox.Text = ""
-        keyBox.PlaceholderText = "❌ Key incorreta!"
-        keyFrame.BackgroundColor3 = Color3.fromRGB(60, 15, 15)
-        task.wait(0.3)
-        keyFrame.BackgroundColor3 = Color3.fromRGB(15, 40, 20)
-    end
+btn.MouseButton1Click:Connect(tryVerify)  
+box.FocusLost:Connect(function(enter)  
+    if enter then tryVerify() end  
 end)
 
--- ============ FUNÇÕES DOS MÓDULOS ============
-
--- ===== GOJO 0.2 =====
-local function StartGojo()
-    if GojoConn then return end
-    GojoActive = true
-    GojoConn = RunService.Heartbeat:Connect(function()
-        if not GojoActive then return end
-        local char = player.Character
-        if not char then return end
-        local root = char:FindFirstChild("HumanoidRootPart")
-        if not root then return end
-        
-        for _, plr in ipairs(game.Players:GetPlayers()) do
-            if plr ~= player and plr.Character then
-                local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-                local hum = plr.Character:FindFirstChildOfClass("Humanoid")
-                if hrp and hum and hum.Health > 0 then
-                    pcall(function()
-                        root.CFrame = hrp.CFrame
-                    end)
-                end
-            end
-        end
-    end)
 end
 
-local function StopGojo()
-    GojoActive = false
-    if GojoConn then GojoConn:Disconnect() GojoConn = nil end
+-- ==================== MAIN HUB ====================
+loadMainHub = function()
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DinoHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+local MainFrame = Instance.new("Frame")  
+MainFrame.Size = UDim2.new(0, 480, 0, 320)  
+MainFrame.Position = UDim2.new(0.5, -240, 0.5, -160)  
+MainFrame.BackgroundColor3 = COR_FUNDO  
+MainFrame.BorderSizePixel = 0  
+MainFrame.Active = true  
+MainFrame.Draggable = true  
+MainFrame.Parent = ScreenGui  
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 16)  
+
+local stroke = Instance.new("UIStroke")  
+stroke.Color = COR_NEON  
+stroke.Thickness = 1.5  
+stroke.Parent = MainFrame  
+
+local TopBar = Instance.new("Frame")  
+TopBar.Size = UDim2.new(1, 0, 0, 42)  
+TopBar.BackgroundTransparency = 1  
+TopBar.Parent = MainFrame  
+
+local HubTitle = Instance.new("TextLabel")  
+HubTitle.Size = UDim2.new(0, 250, 1, 0)  
+HubTitle.Position = UDim2.new(0, 18, 0, 0)  
+HubTitle.BackgroundTransparency = 1  
+HubTitle.Text = "🦖 DINO HUB"  
+HubTitle.TextColor3 = COR_NEON  
+HubTitle.Font = Enum.Font.GothamBold  
+HubTitle.TextSize = 15  
+HubTitle.TextXAlignment = Enum.TextXAlignment.Left  
+HubTitle.Parent = TopBar  
+
+local MinBtn = Instance.new("TextButton")  
+MinBtn.Size = UDim2.new(0, 28, 0, 28)  
+MinBtn.Position = UDim2.new(1, -38, 0.5, -14)  
+MinBtn.BackgroundColor3 = COR_FUNDO_2  
+MinBtn.BorderSizePixel = 0  
+MinBtn.Text = "-"  
+MinBtn.TextColor3 = COR_NEON  
+MinBtn.Font = Enum.Font.GothamBold  
+MinBtn.TextSize = 18  
+MinBtn.Parent = TopBar  
+Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)  
+
+local Sidebar = Instance.new("Frame")  
+Sidebar.Size = UDim2.new(0, 130, 1, -54)  
+Sidebar.Position = UDim2.new(0, 12, 0, 46)  
+Sidebar.BackgroundColor3 = COR_FUNDO_2  
+Sidebar.BorderSizePixel = 0  
+Sidebar.Parent = MainFrame  
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 12)  
+
+local TabList = Instance.new("Frame")  
+TabList.Size = UDim2.new(1, -14, 1, -14)  
+TabList.Position = UDim2.new(0, 7, 0, 7)  
+TabList.BackgroundTransparency = 1  
+TabList.Parent = Sidebar  
+
+local TabLayout = Instance.new("UIListLayout")  
+TabLayout.Padding = UDim.new(0, 5)  
+TabLayout.SortOrder = Enum.SortOrder.LayoutOrder  
+TabLayout.Parent = TabList  
+
+local ContentArea = Instance.new("Frame")  
+ContentArea.Size = UDim2.new(1, -166, 1, -54)  
+ContentArea.Position = UDim2.new(0, 154, 0, 46)  
+ContentArea.BackgroundColor3 = COR_FUNDO_2  
+ContentArea.BorderSizePixel = 0  
+ContentArea.Parent = MainFrame  
+Instance.new("UICorner", ContentArea).CornerRadius = UDim.new(0, 12)  
+
+local ContentTitle = Instance.new("TextLabel")  
+ContentTitle.Size = UDim2.new(1, 0, 0, 36)  
+ContentTitle.Position = UDim2.new(0, 0, 0, 10)  
+ContentTitle.BackgroundTransparency = 1  
+ContentTitle.Text = "Principal"  
+ContentTitle.TextColor3 = COR_NEON  
+ContentTitle.Font = Enum.Font.GothamBold  
+ContentTitle.TextSize = 24  
+ContentTitle.Parent = ContentArea  
+
+local FunctionList = Instance.new("ScrollingFrame")  
+FunctionList.Size = UDim2.new(1, -24, 1, -58)  
+FunctionList.Position = UDim2.new(0, 12, 0, 50)  
+FunctionList.BackgroundTransparency = 1  
+FunctionList.BorderSizePixel = 0  
+FunctionList.ScrollBarThickness = 4  
+FunctionList.ScrollBarImageColor3 = COR_NEON  
+FunctionList.CanvasSize = UDim2.new(0, 0, 0, 0)  
+FunctionList.AutomaticCanvasSize = Enum.AutomaticSize.Y  
+FunctionList.Parent = ContentArea  
+
+local FuncLayout = Instance.new("UIListLayout")  
+FuncLayout.Padding = UDim.new(0, 7)  
+FuncLayout.SortOrder = Enum.SortOrder.LayoutOrder  
+FuncLayout.Parent = FunctionList  
+
+local MiniPanel = Instance.new("TextButton")  
+MiniPanel.Size = UDim2.new(0, 50, 0, 50)  
+MiniPanel.Position = UDim2.new(0, 20, 0.5, -25)  
+MiniPanel.BackgroundColor3 = COR_FUNDO  
+MiniPanel.BorderSizePixel = 0  
+MiniPanel.Text = "+"  
+MiniPanel.TextColor3 = COR_NEON  
+MiniPanel.Font = Enum.Font.GothamBold  
+MiniPanel.TextSize = 26  
+MiniPanel.Draggable = true  
+MiniPanel.Visible = false  
+MiniPanel.Parent = ScreenGui  
+Instance.new("UICorner", MiniPanel).CornerRadius = UDim.new(1, 0)  
+local mpStroke = Instance.new("UIStroke")  
+mpStroke.Color = COR_NEON  
+mpStroke.Thickness = 2  
+mpStroke.Parent = MiniPanel  
+
+MinBtn.MouseButton1Click:Connect(function()  
+    MainFrame.Visible = false  
+    MiniPanel.Visible = true  
+end)  
+
+MiniPanel.MouseButton1Click:Connect(function()  
+    MiniPanel.Visible = false  
+    MainFrame.Visible = true  
+end)  
+
+-- ==================== SISTEMA DE ABAS ====================  
+local Abas = {}  
+local AbaAtual = nil  
+
+local function trocarAba(nomeAba)  
+    for nome, dados in pairs(Abas) do  
+        if nome == nomeAba then  
+            dados.frame.Visible = true  
+            dados.botao.BackgroundColor3 = COR_NEON  
+            dados.botao.TextColor3 = COR_FUNDO  
+        else  
+            dados.frame.Visible = false  
+            dados.botao.BackgroundColor3 = COR_FUNDO  
+            dados.botao.TextColor3 = COR_TXT_DIM  
+        end  
+    end  
+    ContentTitle.Text = nomeAba  
+    AbaAtual = nomeAba  
+end  
+
+local function criarAba(nome, ordem)  
+    local botao = Instance.new("TextButton")  
+    botao.Size = UDim2.new(1, 0, 0, 34)  
+    botao.BackgroundColor3 = COR_FUNDO  
+    botao.BorderSizePixel = 0  
+    botao.Text = nome  
+    botao.TextColor3 = COR_TXT_DIM  
+    botao.Font = Enum.Font.GothamMedium  
+    botao.TextSize = 12  
+    botao.LayoutOrder = ordem  
+    botao.AutoButtonColor = false  
+    botao.Parent = TabList  
+    Instance.new("UICorner", botao).CornerRadius = UDim.new(0, 8)  
+
+    local abaFrame = Instance.new("Frame")  
+    abaFrame.Size = UDim2.new(1, 0, 0, 0)  
+    abaFrame.BackgroundTransparency = 1  
+    abaFrame.Visible = false  
+    abaFrame.Parent = FunctionList  
+
+    local abaLayout = Instance.new("UIListLayout")  
+    abaLayout.Padding = UDim.new(0, 7)  
+    abaLayout.SortOrder = Enum.SortOrder.LayoutOrder  
+    abaLayout.Parent = abaFrame  
+
+    abaLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()  
+        abaFrame.Size = UDim2.new(1, 0, 0, abaLayout.AbsoluteContentSize.Y + 10)  
+    end)  
+
+    botao.MouseButton1Click:Connect(function() trocarAba(nome) end)  
+
+    Abas[nome] = { botao = botao, frame = abaFrame }  
+    if not AbaAtual then trocarAba(nome) end  
+    return abaFrame  
+end  
+
+local function criarToggle(parent, texto, ordem, callback)  
+    local row = Instance.new("Frame")  
+    row.Size = UDim2.new(1, 0, 0, 46)  
+    row.BackgroundColor3 = COR_FUNDO  
+    row.BorderSizePixel = 0  
+    row.LayoutOrder = ordem  
+    row.Parent = parent  
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)  
+    local rStroke = Instance.new("UIStroke")  
+    rStroke.Color = COR_NEON  
+    rStroke.Thickness = 1  
+    rStroke.Transparency = 0.6  
+    rStroke.Parent = row  
+
+    local lbl = Instance.new("TextLabel")  
+    lbl.Size = UDim2.new(0.72, 0, 1, 0)  
+    lbl.Position = UDim2.new(0, 14, 0, 0)  
+    lbl.BackgroundTransparency = 1  
+    lbl.Text = texto  
+    lbl.TextColor3 = Color3.fromRGB(230, 255, 235)  
+    lbl.Font = Enum.Font.Gotham  
+    lbl.TextSize = 13  
+    lbl.TextXAlignment = Enum.TextXAlignment.Left  
+    lbl.Parent = row  
+
+    local bg = Instance.new("Frame")  
+    bg.Size = UDim2.new(0, 42, 0, 24)  
+    bg.Position = UDim2.new(1, -56, 0.5, -12)  
+    bg.BackgroundColor3 = COR_FUNDO_2  
+    bg.BorderSizePixel = 0  
+    bg.Parent = row  
+    Instance.new("UICorner", bg).CornerRadius = UDim.new(1, 0)  
+
+    local circle = Instance.new("Frame")  
+    circle.Size = UDim2.new(0, 18, 0, 18)  
+    circle.Position = UDim2.new(0, 3, 0.5, -9)  
+    circle.BackgroundColor3 = Color3.fromRGB(150, 170, 155)  
+    circle.BorderSizePixel = 0  
+    circle.Parent = bg  
+    Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)  
+
+    local click = Instance.new("TextButton")  
+    click.Size = UDim2.new(1, 0, 1, 0)  
+    click.BackgroundTransparency = 1  
+    click.Text = ""  
+    click.Parent = row  
+
+    local estado = false  
+    click.MouseButton1Click:Connect(function()  
+        estado = not estado  
+        if estado then  
+            bg.BackgroundColor3 = COR_NEON_ESCURO  
+            circle.Position = UDim2.new(1, -21, 0.5, -9)  
+            circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)  
+        else  
+            bg.BackgroundColor3 = COR_FUNDO_2  
+            circle.Position = UDim2.new(0, 3, 0.5, -9)  
+            circle.BackgroundColor3 = Color3.fromRGB(150, 170, 155)  
+        end  
+        if callback then pcall(callback, estado) end  
+    end)  
+
+    return row  
+end  
+
+local AbaP = criarAba("Principal", 1)  
+
+-- ==================== GOJO 0.2 ====================  
+local gojoActive = false  
+local gojoConn = nil  
+criarToggle(AbaP, "Gojo 0.2 (Teleport Kill)", 1, function(ativo)  
+    gojoActive = ativo  
+    if ativo then  
+        gojoConn = task.spawn(function()  
+            while gojoActive do  
+                local char = LP.Character  
+                local root = char and char:FindFirstChild("HumanoidRootPart")  
+                if root then  
+                    for _, p in ipairs(Players:GetPlayers()) do  
+                        if not gojoActive then break end  
+                        if p ~= LP and p.Character then  
+                            local tr  = p.Character:FindFirstChild("HumanoidRootPart")  
+                            local hum = p.Character:FindFirstChildOfClass("Humanoid")  
+                            if tr and hum and hum.Health > 0 then  
+                                root.CFrame = tr.CFrame  
+                                RunService.Heartbeat:Wait()  
+                            end  
+                        end  
+                    end  
+                end  
+                RunService.Heartbeat:Wait()  
+            end  
+        end)  
+    else  
+        if gojoConn then task.cancel(gojoConn); gojoConn = nil end  
+    end  
+end)  
+
+-- ==================== FLY MOBILE ====================  
+local flyAtivo = false  
+local flyConn = nil  
+local direcoes = {cima=false, baixo=false, esq=false, dir=false, subir=false, descer=false}  
+local flyGuiRefs = {}  
+
+local function DestruirControlesFly()  
+    for _, gui in pairs(flyGuiRefs) do pcall(function() gui:Destroy() end) end  
+    flyGuiRefs = {}  
+end  
+
+local function CriarControlesFly()  
+    local sg = Instance.new("ScreenGui")  
+    sg.Name = "DinoFlyControls"  
+    sg.ResetOnSpawn = false  
+    sg.Parent = CoreGui  
+    table.insert(flyGuiRefs, sg)  
+
+    local screenH = workspace.CurrentCamera.ViewportSize.Y  
+
+    local function CriarSeta(pos, texto, dirNome)  
+        local b = Instance.new("TextButton")  
+        b.Size = UDim2.new(0, 60, 0, 60)  
+        b.Position = pos  
+        b.BackgroundColor3 = COR_FUNDO  
+        b.BackgroundTransparency = 0.2  
+        b.Text = texto  
+        b.TextColor3 = COR_NEON  
+        b.Font = Enum.Font.GothamBold  
+        b.TextSize = 26  
+        b.BorderSizePixel = 0  
+        b.Parent = sg  
+        b.AutoButtonColor = false  
+        local c = Instance.new("UICorner") c.CornerRadius = UDim.new(0, 12) c.Parent = b  
+        local s = Instance.new("UIStroke") s.Color = COR_NEON s.Thickness = 2 s.Parent = b  
+
+        b.MouseButton1Down:Connect(function() direcoes[dirNome] = true; b.BackgroundColor3 = COR_NEON; b.TextColor3 = COR_FUNDO end)  
+        b.MouseButton1Up:Connect(function() direcoes[dirNome] = false; b.BackgroundColor3 = COR_FUNDO; b.TextColor3 = COR_NEON end)  
+        b.MouseLeave:Connect(function() direcoes[dirNome] = false; b.BackgroundColor3 = COR_FUNDO; b.TextColor3 = COR_NEON end)  
+    end  
+
+    CriarSeta(UDim2.new(0, 85, 0, screenH - 220), "▲", "cima")  
+    CriarSeta(UDim2.new(0, 20, 0, screenH - 155), "◄", "esq")  
+    CriarSeta(UDim2.new(0, 85, 0, screenH - 90), "▼", "baixo")  
+    CriarSeta(UDim2.new(0, 150, 0, screenH - 155), "►", "dir")  
+    CriarSeta(UDim2.new(1, -80, 0, screenH - 220), "⬆", "subir")  
+    CriarSeta(UDim2.new(1, -80, 0, screenH - 90), "⬇", "descer")  
+end  
+
+criarToggle(AbaP, "Fly (Mobile Controls)", 2, function(ativo)  
+    flyAtivo = ativo  
+    if ativo then  
+        CriarControlesFly()  
+        flyConn = RunService.RenderStepped:Connect(function()  
+            if not flyAtivo then return end  
+            local char = LP.Character  
+            if not char then return end  
+            local root = char:FindFirstChild("HumanoidRootPart")  
+            local hum = char:FindFirstChildOfClass("Humanoid")  
+            if not root or not hum then return end  
+            hum.PlatformStand = true  
+            local cam = workspace.CurrentCamera  
+            local dir = Vector3.new(0, 0, 0)  
+            if direcoes.cima then dir += cam.CFrame.LookVector end  
+            if direcoes.baixo then dir -= cam.CFrame.LookVector end  
+            if direcoes.esq then dir -= cam.CFrame.RightVector end  
+            if direcoes.dir then dir += cam.CFrame.RightVector end  
+            if direcoes.subir then dir += Vector3.new(0, 1, 0) end  
+            if direcoes.descer then dir -= Vector3.new(0, 1, 0) end  
+            root.Velocity = dir.Magnitude > 0 and (dir.Unit * 120) or Vector3.new(0, 0, 0)  
+        end)  
+    else  
+        if flyConn then flyConn:Disconnect(); flyConn = nil end  
+        local char = LP.Character  
+        if char then  
+            local hum = char:FindFirstChildOfClass("Humanoid")  
+            if hum then hum.PlatformStand = false end  
+            local root = char:FindFirstChild("HumanoidRootPart")  
+            if root then root.Velocity = Vector3.new(0, 0, 0) end  
+        end  
+        for k, _ in pairs(direcoes) do direcoes[k] = false end  
+        DestruirControlesFly()  
+    end  
+end)  
+
+-- ==================== FLY PC ====================  
+local flyPCActive = false  
+local flyPCConn, flyPCBV  
+criarToggle(AbaP, "Fly (PC - WASD)", 3, function(ativo)  
+    flyPCActive = ativo  
+    if ativo then  
+        local char = LP.Character  
+        local hum = char and char:FindFirstChildOfClass("Humanoid")  
+        local root = char and char:FindFirstChild("HumanoidRootPart")  
+        if not root or not hum then return end  
+        hum.PlatformStand = true  
+        flyPCBV = Instance.new("BodyVelocity")  
+        flyPCBV.MaxForce = Vector3.new(9e9, 9e9, 9e9)  
+        flyPCBV.Velocity = Vector3.zero  
+        flyPCBV.Parent = root  
+
+        flyPCConn = RunService.Heartbeat:Connect(function()  
+            if not flyPCActive then return end  
+            local c = LP.Character  
+            local r = c and c:FindFirstChild("HumanoidRootPart")  
+            if not r then return end  
+            local cam = workspace.CurrentCamera  
+            local vel = Vector3.zero  
+            local speed = 80  
+            if UIS:IsKeyDown(Enum.KeyCode.W) then vel += cam.CFrame.LookVector * speed end  
+            if UIS:IsKeyDown(Enum.KeyCode.S) then vel -= cam.CFrame.LookVector * speed end  
+            if UIS:IsKeyDown(Enum.KeyCode.A) then vel -= cam.CFrame.RightVector * speed end  
+            if UIS:IsKeyDown(Enum.KeyCode.D) then vel += cam.CFrame.RightVector * speed end  
+            if UIS:IsKeyDown(Enum.KeyCode.Space) then vel += Vector3.new(0, speed, 0) end  
+            flyPCBV.Velocity = vel  
+        end)  
+    else  
+        if flyPCConn then flyPCConn:Disconnect(); flyPCConn = nil end  
+        if flyPCBV then flyPCBV:Destroy(); flyPCBV = nil end  
+        local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")  
+        if hum then hum.PlatformStand = false end  
+    end  
+end)  
+
+-- ==================== FOCUS ====================  
+local focusActive = false  
+local focusConn = nil  
+local focusTarget = nil  
+
+local function findNearest()  
+    local c = LP.Character  
+    local r = c and c:FindFirstChild("HumanoidRootPart")  
+    if not r then return nil end  
+    local best, bestD = nil, math.huge  
+    for _, p in ipairs(Players:GetPlayers()) do  
+        if p ~= LP and p.Character then  
+            local tr = p.Character:FindFirstChild("HumanoidRootPart")  
+            local hum = p.Character:FindFirstChildOfClass("Humanoid")  
+            if tr and hum and hum.Health > 0 then  
+                local d = (tr.Position - r.Position).Magnitude  
+                if d < bestD then bestD = d; best = p end  
+            end  
+        end  
+    end  
+    return best  
+end  
+
+local function stopFocus()  
+    if focusConn then focusConn:Disconnect(); focusConn = nil end  
+    local char = LP.Character  
+    local hum = char and char:FindFirstChildOfClass("Humanoid")  
+    if hum then hum.PlatformStand = false end  
+    focusTarget = nil  
+end  
+
+local function startFocus()  
+    focusTarget = findNearest()  
+    if not focusTarget then focusActive = false return end  
+    local angle = 0  
+    local radius = 6  
+    local speed = 5  
+    local heightOffset = 3  
+
+    focusConn = RunService.Heartbeat:Connect(function(dt)  
+        if not focusActive then return end  
+        if not focusTarget or not focusTarget.Character or not focusTarget.Character.Parent then  
+            focusTarget = findNearest() if not focusTarget then return end  
+        end  
+        local char = LP.Character  
+        local root = char and char:FindFirstChild("HumanoidRootPart")  
+        local hum  = char and char:FindFirstChildOfClass("Humanoid")  
+        local tr   = focusTarget.Character:FindFirstChild("HumanoidRootPart")  
+        local tHum = focusTarget.Character:FindFirstChildOfClass("Humanoid")  
+        if not root or not hum or not tr then return end  
+        if tHum and tHum.Health <= 0 then focusTarget = findNearest() return end  
+        hum.PlatformStand = true  
+        angle += dt * speed  
+        local offset = Vector3.new(math.cos(angle) * radius, heightOffset, math.sin(angle) * radius)  
+        root.CFrame = CFrame.new(tr.Position + offset, tr.Position)  
+        root.Velocity = Vector3.zero  
+    end)  
+end  
+
+criarToggle(AbaP, "Focus (Player)", 4, function(ativo)  
+    focusActive = ativo  
+    if ativo then startFocus() else stopFocus() end  
+end)  
+
+-- ==================== ESP ====================  
+local espActive = false  
+local espFolder = nil  
+
+local function IniciarESP()  
+    if not espFolder then  
+        espFolder = Instance.new("Folder")  
+        espFolder.Name = "DinoESP"  
+        espFolder.Parent = CoreGui  
+    end  
+    task.spawn(function()  
+        while espActive do  
+            espFolder:ClearAllChildren()  
+            for _, p in ipairs(Players:GetPlayers()) do  
+                if p ~= LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then  
+                    local h = Instance.new("Highlight")  
+                    h.Adornee = p.Character  
+                    h.FillColor = COR_NEON  
+                    h.OutlineColor = Color3.fromRGB(255, 255, 255)  
+                    h.FillTransparency = 0.5  
+                    h.Parent = espFolder  
+                end  
+            end  
+            task.wait(1)  
+        end  
+        if espFolder then espFolder:ClearAllChildren() end  
+    end)  
+end  
+
+criarToggle(AbaP, "👁️ ESP (Ver Players)", 5, function(ativo)  
+    espActive = ativo  
+    if ativo then IniciarESP() else if espFolder then espFolder:ClearAllChildren() end end  
+end)  
+
+-- ==================== AUTO KOKUSEN ====================  
+local kokusenActive = false  
+local kokusenConn = nil  
+criarToggle(AbaP, "🖤 Auto Kokusen (Spam Tool)", 6, function(ativo)  
+    kokusenActive = ativo  
+    if ativo then  
+        kokusenConn = task.spawn(function()  
+            while kokusenActive do  
+                local char = LP.Character  
+                local tool = char and char:FindFirstChildOfClass("Tool")  
+                if tool then  
+                    pcall(function() tool:Activate() end)  
+                end  
+                task.wait(0.03)  
+            end  
+        end)  
+    else  
+        if kokusenConn then task.cancel(kokusenConn); kokusenConn = nil end  
+    end  
+end)  
+
+-- ==================== AUTO BYPASS (agora na Principal) ====================  
+local bypassActive = false  
+local bypassConn = nil  
+
+local function ExecutarBypass()  
+    local char = LP.Character or LP.CharacterAdded:Wait()  
+    local root = char:WaitForChild("HumanoidRootPart", 5)  
+    if not root then return false end  
+
+    local sucesso = false  
+    pcall(function()  
+        local jogadores = Players:GetPlayers()  
+        for i = #jogadores, 1, -1 do  
+            if jogadores[i] == LP then table.remove(jogadores, i) end  
+        end  
+        if #jogadores > 0 then  
+            local alvo = jogadores[math.random(1, #jogadores)]  
+            if alvo and alvo.Character and alvo.Character:FindFirstChild("HumanoidRootPart") then  
+                local posAlvo = alvo.Character.HumanoidRootPart.Position + Vector3.new(0, 3, 0)  
+                root.CFrame = CFrame.new(posAlvo)  
+                task.wait(0.5)  
+                if root and root.Parent and (root.Position - posAlvo).Magnitude < 25 then  
+                    sucesso = true  
+                end  
+            end  
+        end  
+    end)  
+    return sucesso  
+end  
+
+local function rotaDoVoid()  
+    pcall(function()  
+        local char = LP.Character  
+        local root = char and char:FindFirstChild("HumanoidRootPart")  
+        local hum  = char and char:FindFirstChildOfClass("Humanoid")  
+        if not root or not hum then return end  
+        hum.PlatformStand = true  
+        local bv = Instance.new("BodyVelocity")  
+        bv.MaxForce = Vector3.new(9e6, 9e6, 9e6)  
+        bv.Velocity = Vector3.new(0, 150, 0)  
+        bv.Parent = root  
+        task.wait(1.3)  
+        bv.Velocity = Vector3.new(-300, 0, 0)  
+        task.wait(2.4)  
+        bv.Velocity = Vector3.zero  
+        hum.PlatformStand = false  
+        bv:Destroy()  
+    end)  
+end  
+
+criarToggle(AbaP, "Auto Bypass", 7, function(ativo)  
+    bypassActive = ativo  
+    if ativo then  
+        bypassConn = task.spawn(function()  
+            while bypassActive do  
+                local sucesso = ExecutarBypass()  
+                if sucesso then  
+                    bypassActive = false  
+                    print("✅ Bypass FUNCIONOU!")  
+                    break  
+                else  
+                    rotaDoVoid()  
+                    task.wait(3)  
+                end  
+            end  
+            bypassActive = false  
+        end)  
+    else  
+        if bypassConn then task.cancel(bypassConn); bypassConn = nil end  
+    end  
+end)  
+
+-- ==================== CRÉDITOS (agora na Principal) ====================  
+local credFrame = Instance.new("Frame")  
+credFrame.Size = UDim2.new(1, 0, 0, 60)  
+credFrame.BackgroundColor3 = COR_FUNDO  
+credFrame.BorderSizePixel = 0  
+credFrame.LayoutOrder = 8  
+credFrame.Parent = AbaP  
+Instance.new("UICorner", credFrame).CornerRadius = UDim.new(0, 10)  
+local credStroke = Instance.new("UIStroke")  
+credStroke.Color = COR_NEON  
+credStroke.Thickness = 1  
+credStroke.Transparency = 0.5  
+credStroke.Parent = credFrame  
+
+local credTitle = Instance.new("TextLabel")  
+credTitle.Size = UDim2.new(1, -20, 0, 20)  
+credTitle.Position = UDim2.new(0, 10, 0, 8)  
+credTitle.BackgroundTransparency = 1  
+credTitle.Text = "🦖 DINO HUB"  
+credTitle.TextColor3 = COR_NEON  
+credTitle.Font = Enum.Font.GothamBold  
+credTitle.TextSize = 13  
+credTitle.TextXAlignment = Enum.TextXAlignment.Left  
+credTitle.Parent = credFrame  
+
+local credLabel = Instance.new("TextLabel")  
+credLabel.Size = UDim2.new(1, -20, 0, 18)  
+credLabel.Position = UDim2.new(0, 10, 0, 30)  
+credLabel.BackgroundTransparency = 1  
+credLabel.Text = "Créditos: Diurno"  
+credLabel.TextColor3 = COR_TXT_DIM  
+credLabel.Font = Enum.Font.Gotham  
+credLabel.TextSize = 12  
+credLabel.TextXAlignment = Enum.TextXAlignment.Left  
+credLabel.Parent = credFrame
+
 end
 
--- ===== FLY (Mobile) =====
-local function StartFly()
-    FlyActive = true
-    local char = player.Character or player.CharacterAdded:Wait()
-    local root = char:WaitForChild("HumanoidRootPart")
-    local hum = char:WaitForChild("Humanoid")
-    
-    local bg = Instance.new("BodyVelocity")
-    bg.Name = "DiurnoFly"
-    bg.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    bg.Velocity = Vector3.zero
-    bg.Parent = root
-    
-    local bgGyro = Instance.new("BodyGyro")
-    bgGyro.Name = "DiurnoFlyGyro"
-    bgGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-    bgGyro.P = 10000
-    bgGyro.D = 500
-    bgGyro.Parent = root
-    
-    task.spawn(function()
-        while FlyActive and root.Parent do
-            local cam = workspace.CurrentCamera
-            local dir = Vector3.zero
-            
-            if FlyKeys.W then
-                dir += cam.CFrame.LookVector
-            end
-            if FlyKeys.S then
-                dir -= cam.CFrame.LookVector
-            end
-            if FlyKeys.A then
-                dir -= cam.CFrame.RightVector
-            end
-            if FlyKeys.D then
-                dir += cam.CFrame.RightVector
-            end
-            if FlyKeys.Up then
-                dir += Vector3.new(0, 1, 0)
-            end
-            if FlyKeys.Down then
-                dir -= Vector3.new(0, 1, 0)
-            end
-            
-            if dir.Magnitude > 0 then
-                bg.Velocity = dir.Unit * FlySpeed
-            else
-                bg.Velocity = Vector3.zero
-            end
-            
-            bgGyro.CFrame = cam.CFrame
-            RunService.Heartbeat:Wait()
-        end
-        if bg then bg:Destroy() end
-        if bgGyro then bgGyro:Destroy() end
-    end)
+if _G.DinoAuthenticated then
+loadMainHub()
+else
+createKeyGui()
 end
 
-local function StopFly()
-    FlyActive = false
-    for _, k in pairs(FlyKeys) do end
-    FlyKeys = {W=false, A=false, S=false, D=false, Up=false, Down=false}
-end
-
--- ===== BYPASS =====
-local function StartBypass()
-    if BypassConn then return end
-    BypassActive = true
-    
-    BypassConn = task.spawn(function()
-        local Players = game:GetService("Players")
-        local LP = Players.LocalPlayer
-        
-        local function AtualizarChar()
-            local char = LP.Character or LP.CharacterAdded:Wait()
-            return char, char:WaitForChild("HumanoidRootPart", 5), char:WaitForChild("Humanoid", 5)
-        end
-        
-        local function ExecutarBypass()
-            local char, root = AtualizarChar()
-            if not root then return false end
-            local sucesso = false
-            pcall(function()
-                local jogadores = Players:GetPlayers()
-                for i = #jogadores, 1, -1 do
-                    if jogadores[i] == LP then table.remove(jogadores, i) end
-                end
-                if #jogadores > 0 then
-                    local alvo = jogadores[math.random(1, #jogadores)]
-                    if alvo and alvo.Character and alvo.Character:FindFirstChild("HumanoidRootPart") then
-                        local posAlvo = alvo.Character.HumanoidRootPart.Position + Vector3.new(0, 3, 0)
-                        root.CFrame = CFrame.new(posAlvo)
-                        task.wait(0.5)
-                        if root and root.Parent and (root.Position - posAlvo).Magnitude < 25 then
-                            sucesso = true
-                        end
-                    end
-                end
-            end)
-            return sucesso
-        end
-        
-        local function rotaDoVoid()
-            local char, root, hum = AtualizarChar()
-            if not root or not hum then return end
-            pcall(function()
-                hum.PlatformStand = true
-                local bv = Instance.new("BodyVelocity")
-                bv.MaxForce = Vector3.new(9999999, 9999999, 9999999)
-                bv.Velocity = Vector3.new(0, 100, 0)
-                bv.Parent = root
-                task.wait(1.5)
-                bv.Velocity = Vector3.new(-700, 0, 0)
-                task.wait(2)
-                bv.Velocity = Vector3.zero
-                hum.PlatformStand = false
-                bv:Destroy()
-            end)
-        end
-        
-        local tentativas = 0
-        while BypassActive do
-            tentativas += 1
-            print("💀 Bypass tentativa #" .. tentativas)
-            local sucesso = ExecutarBypass()
-            if sucesso then
-                print("✅ Bypass FUNCIONOU na tentativa #" .. tentativas)
-                break
-            else
-                print("❌ Falhou #" .. tentativas .. " - Resetando...")
-                rotaDoVoid()
-                task.wait(3)
-            end
-        end
-    end)
-end
-
-local function StopBypass()
-    BypassActive = false
-    BypassConn = nil
-end
-
--- ===== FOCUS (ORBITAL) =====
-local function StartFocus()
-    if not Config.FocusTarget then
-        -- Pega o jogador mais próximo
-        local closest, dist = nil, math.huge
-        local myRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-        if myRoot then
-            for _, plr in ipairs(game.Players:GetPlayers()) do
-                if plr ~= player and plr.Character then
-                    local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-                    if hrp then
-                        local d = (hrp.Position - myRoot.Position).Magnitude
-                        if d < dist then dist = d closest = plr end
-                    end
-                end
-            end
-        end
-        if not closest then return end
-        Config.FocusTarget = closest
-    end
-    
-    Config.FocusActive = true
-    local alvo = Config.FocusTarget
-    
-    -- Cria a part orbital
-    if FocusPart then FocusPart:Destroy() end
-    FocusPart = Instance.new("Part")
-    FocusPart.Size = Vector3.new(3, 3, 3)
-    FocusPart.Shape = Enum.PartType.Ball
-    FocusPart.Material = Enum.Material.Neon
-    FocusPart.Color = Color3.fromRGB(0, 255, 100)
-    FocusPart.CanCollide = false
-    FocusPart.Anchored = true
-    FocusPart.Parent = workspace
-    
-    local angle = 0
-    local radius = 8
-    local heightOffset = 3
-    
-    FocusConn = RunService.Heartbeat:Connect(function(dt)
-        if not Config.FocusActive then return end
-        local targetChar = alvo and alvo.Character
-        if not targetChar then return end
-        local hrp = targetChar:FindFirstChild("HumanoidRootPart")
-        local hum = targetChar:FindFirstChildOfClass("Humanoid")
-        if not hrp or not hum or hum.Health <= 0 then
-            Config.FocusActive = false
-            if FocusPart then FocusPart:Destroy() FocusPart = nil end
-            return
-        end
-        
-        angle += dt * 4
-        local pos = hrp.Position + Vector3.new(math.cos(angle) * radius, heightOffset, math.sin(angle) * radius)
-        FocusPart.CFrame = CFrame.new(pos) * CFrame.Angles(0, -angle, 0)
-        
-        -- Tenta teleportar o player pra perto do alvo também
-        local myRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-        if myRoot then
-            local offset = Vector3.new(math.cos(angle) * radius, heightOffset, math.sin(angle) * radius)
-            myRoot.CFrame = CFrame.new(hrp.Position + offset)
-        end
-    end)
-end
-
-local function StopFocus()
-    Config.FocusActive = false
-    Config.FocusTarget = nil
-    if FocusConn then FocusConn:Disconnect() FocusConn = nil end
-    if FocusPart then FocusPart:Destroy() FocusPart = nil end
-end
-
--- ============ MAIN HUB GUI ============
-_G.OpenDiurnoHub = function()
-    if _G.DiurnoHub and _G.DiurnoHub.Parent then return end
-    
-    local mainGui = Instance.new("ScreenGui")
-    mainGui.Name = "DiurnoHub"
-    mainGui.ResetOnSpawn = false
-    mainGui.Parent = CoreGui
-    _G.DiurnoHub = mainGui
-    
-    -- ===== MOBILE FLY CONTROLS (ficam fora do hub) =====
-    local mobileGui = Instance.new("ScreenGui")
-    mobileGui.Name = "DiurnoMobileFly"
-    mobileGui.ResetOnSpawn = false
-    mobileGui.Parent = CoreGui
-    
-    local function makeArrow(parent, pos, rot, key)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0, 60, 0, 60)
-        btn.Position = pos
-        btn.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
-        btn.Text = "▲"
-        btn.TextColor3 = Color3.fromRGB(15, 40, 20)
-        btn.TextSize = 30
-        btn.Font = Enum.Font.GothamBold
-        btn.Rotation = rot
-        btn.BorderSizePixel = 0
-        btn.Visible = false
-        btn.Parent = parent
-        
-        local c = Instance.new("UICorner")
-        c.CornerRadius = UDim.new(1, 0)
-        c.Parent = btn
-        
-        btn.MouseButton1Down:Connect(function() FlyKeys[key] = true end)
-        btn.MouseButton1Up:Connect(function() FlyKeys[key] = false end)
-        btn.MouseLeave:Connect(function() FlyKeys[key] = false end)
-        btn.TouchLongPress:Connect(function() end)
-        btn.InputBegan:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.Touch then FlyKeys[key] = true end
-        end)
-        btn.InputEnded:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.Touch then FlyKeys[key] = false end
-        end)
-        return btn
-    end
-    
-    -- Lado esquerdo: WASD
-    local leftArrows = {
-        W = makeArrow(mobileGui, UDim2.new(0, 30, 0.5, -100), 0, "W"),
-        A = makeArrow(mobileGui, UDim2.new(0, 30, 0.5, -30), -90, "A"),
-        S = makeArrow(mobileGui, UDim2.new(0, 30, 0.5, 40), 180, "S"),
-        D = makeArrow(mobileGui, UDim2.new(0, 100, 0.5, -30), 90, "D"),
-    }
-    -- Lado direito: UP/DOWN
-    local rightArrows = {
-        Up = makeArrow(mobileGui, UDim2.new(1, -100, 0.5, -60), 0, "Up"),
-        Down = makeArrow(mobileGui, UDim2.new(1, -100, 0.5, 10), 180, "Down"),
-    }
-    
-    -- ===== HUB PRINCIPAL =====
-    local hub = Instance.new("Frame")
-    hub.Name = "MainFrame"
-    hub.Size = UDim2.new(0, 400, 0, 450)
-    hub.Position = UDim2.new(0.5, -200, 0.5, -225)
-    hub.BackgroundColor3 = Color3.fromRGB(10, 35, 15)
-    hub.BorderSizePixel = 0
-    hub.Parent = mainGui
-    
-    local hubCorner = Instance.new("UICorner")
-    hubCorner.CornerRadius = UDim.new(0, 18)
-    hubCorner.Parent = hub
-    
-    local hubStroke = Instance.new("UIStroke")
-    hubStroke.Color = Color3.fromRGB(255, 30, 30)
-    hubStroke.Thickness = 3
-    hubStroke.Parent = hub
-    
-    -- Título
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -100, 0, 50)
-    title.Position = UDim2.new(0, 50, 0, 0)
-    title.BackgroundTransparency = 1
-    title.Text = "DIURNO HUB"
-    title.TextColor3 = Color3.fromRGB(0, 255, 100)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 26
-    title.Parent = hub
-    
-    -- Botão Fechar (-) no canto esquerdo
-    local minBtn = Instance.new("TextButton")
-    minBtn.Size = UDim2.new(0, 35, 0, 35)
-    minBtn.Position = UDim2.new(0, 8, 0, 8)
-    minBtn.BackgroundColor3 = Color3.fromRGB(255, 30, 30)
-    minBtn.Text = "−"
-    minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    minBtn.Font = Enum.Font.GothamBold
-    minBtn.TextSize = 22
-    minBtn.BorderSizePixel = 0
-    minBtn.Parent = hub
-    
-    local minCorner = Instance.new("UICorner")
-    minCorner.CornerRadius = UDim.new(1, 0)
-    minCorner.Parent = minBtn
-    
-    -- Cadeado (drag toggle) no canto direito
-    local lockBtn = Instance.new("TextButton")
-    lockBtn.Size = UDim2.new(0, 35, 0, 35)
-    lockBtn.Position = UDim2.new(1, -43, 0, 8)
-    lockBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
-    lockBtn.Text = "🔓"
-    lockBtn.TextColor3 = Color3.fromRGB(15, 40, 20)
-    lockBtn.Font = Enum.Font.GothamBold
-    lockBtn.TextSize = 18
-    lockBtn.BorderSizePixel = 0
-    lockBtn.Parent = hub
-    
-    local lockCorner = Instance.new("UICorner")
-    lockCorner.CornerRadius = UDim.new(1, 0)
-    lockCorner.Parent = lockBtn
-    
-    local locked = false
-    local dragConn1, dragConn2, dragConn3
-    
-    local function enableDrag()
-        local dragging, dragInput, dragStart, startPos
-        dragConn1 = title.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = hub.Position
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then dragging = false end
-                end)
-            end
-        end)
-        dragConn2 = title.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
-        dragConn3 = UIS.InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                local delta = input.Position - dragStart
-                hub.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            end
-        end)
-    end
-    
-    local function disableDrag()
-        if dragConn1 then dragConn1:Disconnect() end
-        if dragConn2 then dragConn2:Disconnect() end
-        if dragConn3 then dragConn3:Disconnect() end
-    end
-    
-    enableDrag() -- Começa destrancado (com drag)
-    
-    lockBtn.MouseButton1Click:Connect(function()
-        locked = not locked
-        if locked then
-            lockBtn.Text = "🔒"
-            lockBtn.BackgroundColor3 = Color3.fromRGB(255, 30, 30)
-            disableDrag()
-        else
-            lockBtn.Text = "🔓"
-            lockBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
-            enableDrag()
-        end
-    end)
-    
-    -- Container de botões
-    local btnHolder = Instance.new("Frame")
-    btnHolder.Size = UDim2.new(1, -30, 1, -80)
-    btnHolder.Position = UDim2.new(0, 15, 0, 65)
-    btnHolder.BackgroundTransparency = 1
-    btnHolder.Parent = hub
-    
-    local listLayout = Instance.new("UIListLayout")
-    listLayout.Padding = UDim.new(0, 10)
-    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    listLayout.Parent = btnHolder
-    
-    -- Função criar botão de toggle
-    local function createToggle(name, callback)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 0, 50)
-        btn.BackgroundColor3 = Color3.fromRGB(20, 60, 30
+print("🦖 DINO HUB carregado!")
