@@ -787,5 +787,65 @@ loadMainHub()
 else
 createKeyGui()
 end
+-- ==================== AFK FARM (AUTO M1 + AUTO SKILL) ====================
+local afkAtivo = false
+local loopAFK = nil
+local m1Delay = 0.15
+local skillDelay = 0.5
 
+local function ClickMouse()
+    pcall(function()
+        local vim = game:GetService("VirtualInputManager")
+        vim:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+        task.wait(0.02)
+        vim:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+    end)
+end
+
+local function PressKey(key, hold)
+    pcall(function()
+        local vim = game:GetService("VirtualInputManager")
+        vim:SendKeyEvent(true, key, false, game)
+        task.wait(hold or 0.03)
+        vim:SendKeyEvent(false, key, false, game)
+    end)
+end
+
+local function ExecutarSkill()
+    local skills = {
+        Enum.KeyCode.One, Enum.KeyCode.Two,
+        Enum.KeyCode.Three, Enum.KeyCode.Four,
+        Enum.KeyCode.R, Enum.KeyCode.F, Enum.KeyCode.Q,
+    }
+    PressKey(skills[math.random(1, #skills)])
+end
+
+local function IniciarAFK()
+    afkAtivo = true
+    loopAFK = task.spawn(function()
+        local contador = 0
+        while afkAtivo do
+            ClickMouse()
+            contador = contador + 1
+            if contador >= 4 then
+                ExecutarSkill()
+                task.wait(skillDelay)
+                contador = 0
+            else
+                task.wait(m1Delay)
+            end
+        end
+    end)
+    print("🦖 AFK Farm ATIVADO")
+end
+
+local function PararAFK()
+    afkAtivo = false
+    if loopAFK then task.cancel(loopAFK); loopAFK = nil end
+    print("🦖 AFK Farm DESATIVADO")
+end
+
+criarToggle(AbaP, "🦖 AFK Farm (Auto M1 + Skill)", 9, function(ativo)
+    if ativo then IniciarAFK() else PararAFK() end
+end)
 print("🦖 DINO HUB carregado!")
